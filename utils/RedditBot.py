@@ -1,34 +1,96 @@
 from datetime import date
 import os
 import praw
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import requests
 import json
-from utils.Scalegif import scale_gif
+from PIL import Image, ImageDraw
 
-load_dotenv()
+# load_dotenv()
 
+# Your Reddit ID & Pass
+reddit_username="theblipman"
+reddit_password="your_reddit_password"
+
+# Reddit API ID & Key (which you can get from here: https://www.reddit.com/prefs/apps/)
+client_id="ZJal5z6xRhWdcs7MLHEMAw"
+client_secret="7MI_RkFvd2nDUX8CCLl2TEUBbg4mag"
+
+# Oxford Dictionary application ID & Key (which you can get from here: https://developer.oxforddictionaries.com/)
+app_id="your_app_id"
+app_key="your_app_key"
+user_agent="youtubespatel"
+IMAGEMAGICK_BINARY="C:\\Program Files\\ImageMagick-7.1.0-Q16-HDRI"
+
+from PIL import Image
+
+def scale_gif(path, scale, new_path=None):
+    image = Image.open(path)
+    if not new_path:
+        new_path = path
+    # print(path[-3:])
+    if path[-3:] == "gif":
+        old_gif_information = {
+            'loop': bool(image.info.get('loop', 1)),
+            'duration': image.info.get('duration', 40),
+            'background': image.info.get('background', 223),
+            'extension': image.info.get('extension', (b'NETSCAPE2.0')),
+            'transparency': image.info.get('transparency', 223)
+        }
+        new_frames = get_new_frames(image, scale)
+        save_new_gif(new_frames, old_gif_information, new_path)
+    else:
+        try:
+            other_image = image.resize(scale) 
+            other_image.save(path)
+        except:
+            Image.open(path).convert('RGB').save(path)
+
+
+
+def get_new_frames(gif, scale):
+    new_frames = []
+    actual_frames = gif.n_frames
+    for frame in range(actual_frames):
+        gif.seek(frame)
+        new_frame = Image.new('RGBA', gif.size)
+        new_frame.paste(gif)
+        new_frame = new_frame.resize(scale, Image.ANTIALIAS)
+        new_frames.append(new_frame)
+    return new_frames
+
+def save_new_gif(new_frames, old_gif_information, new_path):
+    new_frames[0].save(new_path,
+                       save_all = True,
+                       append_images = new_frames[1:],
+                       duration = old_gif_information['duration'],
+                       loop = old_gif_information['loop'],
+                       background = old_gif_information['background'],
+                       extension = old_gif_information['extension'] ,
+                       transparency = old_gif_information['transparency'])
 
 class RedditBot():
 
     def __init__(self):
         self.reddit = praw.Reddit(
-            client_id=os.getenv('client_id'),
-            client_secret=os.getenv('client_secret'),
-            user_agent=os.getenv('user_agent'),
+            client_id=client_id,
+            client_secret=client_secret,
+            user_agent=user_agent,
         )
 
-        dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        self.data_path = os.path.join(dir_path, "data/")
+        # dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        dir_path = "/tmp"
+        self.data_path = os.path.join(dir_path, "data")
         self.post_data = []
         self.already_posted = []
 
         #   Check for a posted_already.json file
-        self.posted_already_path = os.path.join(
-            self.data_path, "posted_already.json")
+        self.posted_already_path = os.path.join(self.data_path, "posted_already.json")
+
         if os.path.isfile(self.posted_already_path):
             print("Loading posted_already.json from data folder.")
             with open(self.posted_already_path, "r") as file:
+                # file = Image.open(self.posted_already_path)
                 self.already_posted = json.load(file)
 
     def get_posts(self, sub="memes"):
@@ -52,33 +114,33 @@ class RedditBot():
         if not check_folder:
             os.makedirs(data_folder_path)
 
-    def save_image(self, submission, scale=(720, 1280)):
+    def save_image(self, submission, scale=(540,960 )):
+        # print(submission.url.lower())
         if "jpg" in submission.url.lower() or "png" in submission.url.lower() or "gif" in submission.url.lower() and "gifv" not in submission.url.lower():
-            # try:
-
+            # try: 
             # Get all images to ignore
             dt_string = date.today().strftime("%m%d%Y")
             data_folder_path = os.path.join(self.data_path, f"{dt_string}/")
             CHECK_FOLDER = os.path.isdir(data_folder_path)
+
             if CHECK_FOLDER and len(self.post_data) < 5 and not submission.over_18 and submission.id not in self.already_posted:
                 image_path = f"{data_folder_path}Post-{submission.id}{submission.url.lower()[-4:]}"
-
                 # Get the image and write the path
                 reqest = requests.get(submission.url.lower())
                 with open(image_path, 'wb') as f:
                     f.write(reqest.content)
-
                 # Could do transforms on images like resize!
                 #image = cv2.resize(image,(720,1280))
-                scale_gif(image_path, scale)
-
+                try:
+                    scale_gif(image_path, scale)
+                except Exception as e:
+                    print(image_path, submission.url.lower())
                 #cv2.imwrite(f"{image_path}", image)
                 submission.comment_sort = 'best'
-
                 # Get best comment.
                 best_comment = None
                 best_comment_2 = None
-
+                print(submission.comments)
                 for top_level_comment in submission.comments:
                     # Here you can fetch data off the comment.
                     # For the sake of example, we're just printing the comment body.
@@ -89,9 +151,12 @@ class RedditBot():
                             best_comment_2 = top_level_comment
                             break
 
-                best_comment.reply_sort = "top"
-                best_comment.refresh()
-                replies = best_comment.replies
+                if best_comment:
+                    best_comment.reply_sort = "top"
+                    best_comment.refresh()
+                    replies = best_comment.replies
+                else:
+                    replies = []
 
                 best_reply = None
                 for top_level_comment in replies:
@@ -104,7 +169,7 @@ class RedditBot():
                 if best_reply is not None:
                     best_reply = best_reply.body
                 else:
-                    best_reply = "MIA"
+                    best_reply = "😅"
                     if best_comment_2 is not None:
                         best_reply = best_comment_2.body
 
@@ -114,7 +179,7 @@ class RedditBot():
                     "title": submission.title,
                     "score": submission.score,
                     "18": submission.over_18,
-                    "Best_comment": best_comment.body,
+                    "Best_comment": best_comment.body if best_comment else "HaHaHa...",
                     "best_reply": best_reply
                 }
 

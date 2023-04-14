@@ -1,0 +1,287 @@
+from utils.pywhatkit import sendwhatmsg_instantly, sendwhatmsg_to_group_instantly
+import time
+import tweepy
+from time import sleep 
+import requests
+import random
+
+# Import Twitter credentials from credentials.py
+# from credentials import * 
+# from config import QUERY, FOLLOW, LIKE, SLEEP_TIME
+
+def publish(yid, whatapp=True, insta=False, tweet=False, telegram=False, fbg=False, wp=False, email=False):
+
+    if whatapp:
+        whatapp = Whatapp(yid)
+        whatapp.publish()
+
+    if telegram:
+        telegram = Telegram(yid)
+        telegram.publish()
+
+    if tweet:
+        tweet = Tweet(yid)
+        tweet.publish()
+
+    if insta:
+        insta = Insta(yid)
+        insta.publish()
+
+    if fbg:
+        fbg= FacebookGroup(yid)
+        fbg.publish()
+    if wp:
+        wp = Wordpress(yid)
+        wp.publish()
+
+    if email:
+        em = Email(yid)
+        em.publish()
+
+class Marking(object):
+    def __init__(self, yid):
+
+        self.twitter_username = ''
+        self.twitter_password = ''
+
+        contact = open("db/contact_db.txt", 'r');
+        self.phones = contact.readlines()
+
+        groups_list = open("db/group_db.txt", 'r');
+        self.groups = groups_list.readlines()
+
+        emails_list = open("db/emails_db.txt", 'r');
+        self.emails = emails_list.readlines()
+
+        fbg_list = open("db/fbg_db.txt", 'r');
+        self.fbgs = fbg_list.readlines()
+        
+        self.msg = []
+        self.msg.append("Avoid stress, you can miss this https://youtube.com/shorts/{} video but don’t forget to smile :-)".format(str(yid)))
+        self.msg.append("No need to stress out, skipping this https://youtube.com/shorts/{} video is fine but keep smiling :-)".format(str(yid)))
+        self.msg.append("Don’t let stress get to you, it’s alright to pass on this https://youtube.com/shorts/{} video but never on your smile :-)".format(str(yid)))
+        self.msg.append("Stress is not good for you, you have the option to ignore this https://youtube.com/shorts/{} video but always remember to smile :-)".format(str(yid)))
+        self.msg.append("Don’t worry about stress, it’s okay to not watch this https://youtube.com/shorts/{} video but make sure you smile :-)".format(str(yid)))
+ 
+
+class Email(Marking):
+    """100 email limit to subcriber"""
+    def publish(self):
+        ...
+
+class Wordpress(Marking):
+    def publish(self):
+        ...
+
+class FacebookGroup(Marking):
+
+    def publish(self):
+        usr = ""
+        pwd = ""
+        message = " A well written blog on Arduino and ESP based smart farms . \n https://highvoltages.co/tutorial/iot/smart-farms-generating-techno-environmental-awareness/"
+        
+        esp_groupsdb = open("db/esp_groupsdb.txt", 'r');
+        ESP_groups = esp_groupsdb.readlines()
+        
+        group_linksdb = open("db/group_linksdb.txt", 'r');
+        group_links = group_linksdb.readlines()
+
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_experimental_option("detach", True)
+        chrome_options.add_argument("--disable-infobars")
+        # chrome_options.add_argument("-headless")
+        chrome_options.add_experimental_option("prefs", { \
+            "profile.default_content_setting_values.notifications": 2  # 1:allow, 2:block
+        })
+
+        driver = webdriver.Chrome(chrome_options=chrome_options)
+        driver.implicitly_wait(15)  # seconds
+
+        # Go to facebook.com
+        driver.get("http://www.facebook.com")
+
+        # Enter user email
+        elem = driver.find_element_by_id("email")
+        elem.send_keys(usr)
+        # Enter user password
+        elem = driver.find_element_by_id("pass")
+        elem.send_keys(pwd)
+        # Login
+        elem.send_keys(Keys.RETURN)
+
+        for group in group_links: 
+            # Go to the Facebook Group
+            driver.get(group)
+            # Click the post box
+            post_box = driver.find_element_by_xpath("//*[@name='xhpc_message_text']")
+            # Enter the text we want to post to Facebook
+            post_box.send_keys(message)
+            sleep(10)
+            buttons = driver.find_elements_by_tag_name("button")
+            sleep(5)
+            for button in buttons:
+                if button.text == "Post":
+                    sleep(10)
+                    button.click()
+                    sleep(10)
+
+        ...
+
+class Telegram(Marking):
+    def publish(self):
+        ...
+
+class Tweet(Marking):
+    # follows up to 250 accounts from your recommendations
+    # unfollows 100 accounts from your following list
+    def follow_unfollow(self): 
+        from twitpy import TwitPy    
+        TwitPy(username=self.twitter_username, password=self.twitter_password,nogui=False).login().follow_from_recom(amount=250).unfollow_users(amount=100).end()
+
+    def tweet_text(self): 
+        auth = tweepy.OAuthHandler(self.tw_consumer_key, self.tw_consumer_secret)
+        auth.set_access_token(self.tw_access_token, self.tw_access_token_secret)
+        api = tweepy.API(auth)
+
+        my_file=open('db/tweetdb.txt','r')
+        file_lines=my_file.readlines()
+        my_file.close()
+        for line in file_lines:
+            try:
+                print(line)
+                # Add if statement to ensure that blank lines are skipped
+                if line != '\n':
+                    api.update_status(line)
+                # Add an else statement with pass to conclude the conditional statement
+                else:
+                    pass
+            except tweepy.TweepError as e:
+                print(e.reason)
+            sleep(10)
+    
+    def retweet(self):
+        
+
+
+        auth = tweepy.OAuthHandler(self.tw_consumer_key, self.tw_consumer_secret)
+        auth.set_access_token(self.tw_access_token, self.tw_access_token_secret)
+        api = tweepy.API(auth)
+
+        print("Twitter bot which retweets,like tweets and follow users")
+        print("Bot Settings")
+        print("Like Tweets :", LIKE)
+        print("Follow users :", FOLLOW)
+
+        for tweet in tweepy.Cursor(api.search, q=QUERY).items():
+            try:
+                print('\nTweet by: @' + tweet.user.screen_name)
+
+                tweet.retweet()
+                print('Retweeted the tweet')
+
+                # Favorite the tweet
+                if LIKE:
+                    tweet.favorite()
+                    print('Favorited the tweet')
+
+                # Follow the user who tweeted
+                #check that bot is not already following the user
+                if FOLLOW:
+                    if not tweet.user.following:
+                        tweet.user.follow()
+                        print('Followed the user')
+
+                sleep(SLEEP_TIME)
+
+            except tweepy.TweepError as e:
+                print(e.reason)
+
+            except StopIteration:
+                break
+
+
+    def publish(self):
+        ...
+
+class Insta(Marking):
+    def publish(self):
+        ...
+
+class Youtube(Marking):
+    def  publish(self):  
+
+        # Define your channel id and access token
+        channel_id = "YOUR_CHANNEL_ID"
+        access_token = "YOUR_ACCESS_TOKEN"
+        # Define your post content and options
+        post_content = "YOUR_QUESTION"
+        post_options = ["YOUR_OPTION_0", "YOUR_OPTION_1"]
+        # Define the request url and headers
+        url = f"https://www.youtube.com/youtubei/v1/community/create_post?key={access_token}"
+        headers = {
+            "content-type": "application/json",
+            "x-goog-authuser": "0",
+            "x-origin": "https://www.youtube.com",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36",
+            "x-goog-visitor-id": "",
+            "authorization": ""
+        }
+        # Define the request payload
+        payload = {
+          "context": {
+            "client": {
+              # You may need to change these values according to your browser
+              "clientName": 1,
+              "clientVersion": "",
+              # You may need to change this value according to your location
+              "gl": "",
+              # You may need to change this value according to your language
+              "hl": ""
+            },
+            # You may need to change this value according to your session
+            "request":{
+                'sessionId': '',
+                'internalExperimentFlags': [],
+                'consistencyTokenJars': []
+                }
+          },
+          # This is where you define your post content and options
+          'createCommunityPostRequest': {
+                'channelId': channel_id,
+                'communityPostType': 'COMMUNITY_POST_TYPE_TEXT_POLL',
+                'textPollCommunityPostData': {
+                    'titleText': {'runs': [{'text': post_content}]},
+                    'choicesTexts': [{'runs': [{'text': option}]} for option in post_options]
+                    }
+                }
+        }
+
+        # Send a POST request with the url, headers and payload
+        response = requests.post(url, headers=headers, json=payload)
+
+        # Check the status code of the response
+        if response.status_code == 200:
+            print("Youtube Post created successfully!")
+        else:
+            print("Something went wrong!")
+
+class Whatapp(Marking):
+
+    def publish(self):
+        self.publish_to() 
+        #self.publish_group()
+
+    def publish_to(self): 
+        i = 0;
+        for phone in self.phones:
+            sendwhatmsg_instantly(phone.strip("\n"), self.msg[2] , 45, tab_close=True)
+            time.sleep(60 * 2)
+            i +=1;
+            if i > 50:
+                break;
+
+    def publish_group(self):
+        for group in self.groups:
+            sendwhatmsg_to_group_instantly(group.strip("\n"), self.msg , 15, tab_close=True)
+            time.sleep(60 * 1)
+       
