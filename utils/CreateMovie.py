@@ -2,7 +2,9 @@ from moviepy.editor import *
 import random
 import os
 import moviepy.editor as mpe
-dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+from yt_config import *
+
+music_path = DIR_PATH_MUSIC #os.path.join(dir_path, "Music/")
 
 def GetDaySuffix(day):
     if day == 1 or day == 21 or day == 31:
@@ -15,9 +17,7 @@ def GetDaySuffix(day):
         return "th"
 
 # dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-dir_path = "/opt/python"
-music_path = os.path.join(dir_path, "Music/")
-
+ 
 def add_return_comment(comment):
     need_return = 30
     new_comment = ""
@@ -36,19 +36,7 @@ class CreateMovie():
 
     @classmethod
     def CreateMP4(cls, post_data):
-
         clips = []
-
-        # introName = ''
-        # videos = []
-        # if introName != '':
-        #     introVid = VideoFileClip("./" + introName)
-        #     videos.append(introVid)
-        #     duration += introVid.duration
-        # template_path = '.\\data\\template.png'
-        # clip_with_green = ImageSequenceClip([template_path], durations=[12])
-        # clips.append(clip) 
-
         for post in post_data:
             if "gif" not in post['image_path']:
                 clip = ImageSequenceClip([post['image_path']], durations=[12])
@@ -85,7 +73,6 @@ class CreateMovie():
             text_clips.append(txt)
 
             return_comment, _ = add_return_comment(post['best_reply'])
-            # txt = TextClip(return_comment, font='Courier',fontsize=38, color=colors.pop(), bg_color='yellow')
             txt = TextClip(return_comment, font='Calibri',fontsize=25,   color="black",bg_color='yellow', stroke_color="black", align='center', stroke_width=.02)
             txt = txt.on_color(col_opacity=.3)
             # txt = txt.set_position((15,585 + (return_count * 50)))
@@ -116,33 +103,6 @@ class CreateMovie():
         clip = VideoFileClip("video_clips.mp4",audio=False)
         clip = CompositeVideoClip([clip] + text_clips)
         clip.audio = new_audioclip
-        clip.write_videofile("/tmp/video.mp4", fps = 24)
-
-        if os.path.exists(os.path.join(dir_path, "video_clips.mp4")):
-            os.remove(os.path.join(dir_path, "video_clips.mp4"))
-        else:
-            print(os.path.join(dir_path, "video_clips.mp4"))
-
-# if __name__ == '__main__':
-
-#     createMovie = CreateMovie()
-#     post_data_item1 = {}
-#     post_data_item1['title'] = 'Okkey' 
-#     post_data_item1['image_path'] = ".\\data\\03092023\\1.jpg"
-#     post_data_item1['Best_comment'] = ["hi this is"]
-#     post_data_item1['best_reply'] = ["hi this is"]
-
-#     # post_data_item2 = {}
-#     # post_data_item2['title'] = 'Okkey' 
-#     # post_data_item2['image_path'] = ".\\data\\03092023\\2.jpg"
-#     # post_data_item2['Best_comment'] = ["hi this is"]
-#     # post_data_item2['best_reply'] = ["hi this is"]
-
-
-#     post_data = []
-#     post_data.append(post_data_item1)
-#     # post_data.append(post_data_item2)
-
-#     createMovie.CreateMP4(post_data)
-
-#     print(TextClip.list('color'))
+        file = os.path.join(DIR_PATH_OUTPUT, "video.mp4")
+        clip.write_videofile(file, fps = 24, temp_audiofile=os.path.join(DIR_PATH_OUTPUT, 'temp-audio.mp3') )
+ 

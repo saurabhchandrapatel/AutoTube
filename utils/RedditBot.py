@@ -1,34 +1,15 @@
 from datetime import date
 import os
-import praw
-# from dotenv import load_dotenv
+import praw 
 import requests
 import json
 from PIL import Image, ImageDraw
-
-# load_dotenv()
-
-# Your Reddit ID & Pass
-reddit_username="theblipman"
-reddit_password="your_reddit_password"
-
-# Reddit API ID & Key (which you can get from here: https://www.reddit.com/prefs/apps/)
-client_id="ZJal5z6xRhWdcs7MLHEMAw"
-client_secret="7MI_RkFvd2nDUX8CCLl2TEUBbg4mag"
-
-# Oxford Dictionary application ID & Key (which you can get from here: https://developer.oxforddictionaries.com/)
-app_id="your_app_id"
-app_key="your_app_key"
-user_agent="youtubespatel"
-IMAGEMAGICK_BINARY="C:\\Program Files\\ImageMagick-7.1.0-Q16-HDRI"
-
-from PIL import Image
-
+from yt_config import * 
+ 
 def scale_gif(path, scale, new_path=None):
     image = Image.open(path)
     if not new_path:
         new_path = path
-    # print(path[-3:])
     if path[-3:] == "gif":
         old_gif_information = {
             'loop': bool(image.info.get('loop', 1)),
@@ -79,18 +60,15 @@ class RedditBot():
         )
 
         # dir_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-        dir_path = "/tmp"
         self.data_path = os.path.join(dir_path, "data")
         self.post_data = []
         self.already_posted = []
 
         #   Check for a posted_already.json file
-        self.posted_already_path = os.path.join(self.data_path, "posted_already.json")
-
+        self.posted_already_path = os.path.join( DIR_PATH_DB , "posted_already.json")
         if os.path.isfile(self.posted_already_path):
             print("Loading posted_already.json from data folder.")
             with open(self.posted_already_path, "r") as file:
-                # file = Image.open(self.posted_already_path)
                 self.already_posted = json.load(file)
 
     def get_posts(self, sub="memes"):
@@ -110,40 +88,33 @@ class RedditBot():
         dt_string = today.strftime("%m%d%Y")
         data_folder_path = os.path.join(self.data_path, f"{dt_string}/")
         check_folder = os.path.isdir(data_folder_path)
-        # If folder doesn't exist, then create it.
         if not check_folder:
             os.makedirs(data_folder_path)
 
     def save_image(self, submission, scale=(540,960 )):
-        # print(submission.url.lower())
         if "jpg" in submission.url.lower() or "png" in submission.url.lower() or "gif" in submission.url.lower() and "gifv" not in submission.url.lower():
-            # try: 
-            # Get all images to ignore
+         
             dt_string = date.today().strftime("%m%d%Y")
             data_folder_path = os.path.join(self.data_path, f"{dt_string}/")
             CHECK_FOLDER = os.path.isdir(data_folder_path)
 
             if CHECK_FOLDER and len(self.post_data) < 5 and not submission.over_18 and submission.id not in self.already_posted:
                 image_path = f"{data_folder_path}Post-{submission.id}{submission.url.lower()[-4:]}"
-                # Get the image and write the path
+         
                 reqest = requests.get(submission.url.lower())
                 with open(image_path, 'wb') as f:
                     f.write(reqest.content)
-                # Could do transforms on images like resize!
-                #image = cv2.resize(image,(720,1280))
                 try:
                     scale_gif(image_path, scale)
                 except Exception as e:
                     print(image_path, submission.url.lower())
-                #cv2.imwrite(f"{image_path}", image)
+             
                 submission.comment_sort = 'best'
-                # Get best comment.
+              
                 best_comment = None
                 best_comment_2 = None
                 print(submission.comments)
                 for top_level_comment in submission.comments:
-                    # Here you can fetch data off the comment.
-                    # For the sake of example, we're just printing the comment body.
                     if len(top_level_comment.body) <= 140 and "http" not in top_level_comment.body:
                         if best_comment is None:
                             best_comment = top_level_comment
@@ -160,8 +131,6 @@ class RedditBot():
 
                 best_reply = None
                 for top_level_comment in replies:
-                    # Here you can fetch data off the comment.
-                    # For the sake of example, we're just printing the comment body.
                     best_reply = top_level_comment
                     if len(best_reply.body) <= 140 and "http" not in best_reply.body:
                         break

@@ -1,24 +1,11 @@
+from yt_config import *
 import requests
 from datetime import date
 import time
 from utils.CreateMovie import CreateMovie, GetDaySuffix
 from utils.RedditBot import RedditBot
 from utils.upload_video import UploadVedio
-# import pytrends
-# import wikipedia
-# import pyttsx3
-# from utils.Marketing import publish
-
-
-
 import tweepy
-
-# Authenticate to Twitter
-auth = tweepy.OAuthHandler("HH8wG1gSXq0Ag6vQjhgZcJXov", "8A6vj1euc2BnriOTLK7QiZSL5Wymt2xu9wpHYOQP4JihePyIlV")
-auth.set_access_token("2258745854-KaLHv8q0PuFXxQumdO04D7Wl3j0UAdlOKCxJJqR", "PcyBW1xtBuRRSoPaR9B1jb8SyPu4vks5tNc4i28nUyKwo")
- 
-
-
 
 def main(upload_video_status=False):
     redditbot = RedditBot()     
@@ -38,13 +25,9 @@ def main(upload_video_status=False):
             Giving you the hottest memes of the day with funny comments!
 
             '''+title+''' 
-            
+        
             video  includes funny memes, internet jokes, and viral clips. videos are popular with a wide range of audiences, particularly younger generations who are more likely to consume and share content on social media.
-            
-            BE MY FRIEND:
-             🌍Check my website / blog: https://blog.aktel.in
- 
-
+        
         '''
 
         keywords = """
@@ -58,22 +41,28 @@ def main(upload_video_status=False):
             "keywords": keywords.replace(" #", ", "),
             "privacyStatus":"public",
         }
-        time.sleep(60 * 1)
         UploadVedioObj = UploadVedio()
         id = UploadVedioObj.upload(video_data)
         print(id)
-        api = tweepy.API(auth) 
-        api.update_status("https://www.youtube.com/shorts/"+str(id))
+
+        try: 
+            auth = tweepy.OAuthHandler(consumer_key,consumer_secret)
+            auth.set_access_token(access_token, access_token_secret) 
+            api = tweepy.API(auth)
+            # api.update_status(video_desc + video_title) 
+            api.update_status("https://www.youtube.com/shorts/"+str(id))
+        except Exception as e:
+            print(e)
+            return None
+               
     return "ko"
 
 def lambda_handler(event, context):    
-    upload_video_status = True
+    upload_video_status = False
     daily = False
     out = main(upload_video_status)
     return { 
         'message' : out
     }
-
-
 
 lambda_handler("", "") 
