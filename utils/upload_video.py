@@ -78,15 +78,15 @@ class UploadVedio(UploadVedioBase):
 
   def initialize_upload(self,youtube, options):
     tags = None
-  #   if options.keywords:
-  #     tags = options.keywords.split(",")
+    if options['keywords']:
+      tags = options['keywords'].split(",")
 
     body=dict(
       snippet=dict(
         title=options['title'],
         description=options['description'],
-        tags=tags,
-        #categoryId=options['category']
+        # tags=tags,
+        # categoryId=options['category']
       ),
       status=dict(
         privacyStatus=options['privacyStatus']
