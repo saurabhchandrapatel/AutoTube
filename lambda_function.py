@@ -44,7 +44,6 @@ def main(upload_video_status=False):
         UploadVedioObj = UploadVedio()
         id = UploadVedioObj.upload(video_data)
         print(id)
-
         try: 
             auth = tweepy.OAuthHandler(consumer_key,consumer_secret)
             auth.set_access_token(access_token, access_token_secret) 
@@ -54,7 +53,7 @@ def main(upload_video_status=False):
         except Exception as e:
             print(e)
             return None
-               
+
     return "ko"
 
 def lambda_handler(event, context):    
