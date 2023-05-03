@@ -35,7 +35,7 @@ def main(upload_video_status=False):
             """
 
         video_data = {
-            "file": "/tmp/video.mp4",
+            "file": os.path.join(DIR_PATH_OUTPUT, "video.mp4"),
             "title": title,
             "description": description+keywords,
             "keywords": keywords.replace(" #", ", "),
