@@ -57,7 +57,7 @@ def main(upload_video_status=False):
     return "ko"
 
 def lambda_handler(event, context):    
-    upload_video_status = False
+    upload_video_status = True
     daily = False
     out = main(upload_video_status)
     return { 
