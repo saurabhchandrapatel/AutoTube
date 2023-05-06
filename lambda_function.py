@@ -59,9 +59,18 @@ def main(upload_video_status=False):
 def lambda_handler(event, context):    
     upload_video_status = True
     daily = False
-    out = main(upload_video_status)
-    return { 
-        'message' : out
-    }
+    Count = 0
+    while True:
+        Count = Count +1
+        try:
+            out = main(upload_video_status)
+            return { 
+                'message' : out
+            }
+            break;
+        except Exception as e:
+            print(str(e))
+            if Count > 5:
+                break;
 
 lambda_handler("", "") 
