@@ -1,17 +1,22 @@
 from yt_config import *
 import requests
 from datetime import date
+from datetime import datetime
+
 import time
 from utils.CreateMovie import CreateMovie, GetDaySuffix
 from utils.RedditBot import RedditBot
 from utils.upload_video import UploadVedio
 import tweepy
-
+ 
 def main(upload_video_status=False):
     redditbot = RedditBot()     
     upload_token = True
     posts = redditbot.get_posts("memes")
     redditbot.create_data_folder()
+    if datetime.today().strftime("%p") =='PM':
+        posts.pop(0);
+
     for post in posts:
         redditbot.save_image(post)
     DAY = date.today().strftime("%d")
