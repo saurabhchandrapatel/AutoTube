@@ -81,7 +81,7 @@ class RequestError(ShortenerError):
 class Shortener:
     """Shortener."""
 
-    def __init__(self, *, tokens: List[str], max_cache_size: int = config.DEFAULT_CACHE_SIZE):
+    def __init__(self, *, tokens: List[str], max_cache_size: int = DEFAULT_CACHE_SIZE):
         self._tokens = tokens
         self._max_cache_size = max_cache_size
         self._check_args()
@@ -89,7 +89,7 @@ class Shortener:
 
         self._shorten_url = lru_cache(maxsize=self._max_cache_size)(self._shorten_url)  # type: ignore  # Instance level cache
         self._init_executor()
-        if config.TEST_API_ON_INIT:
+        if TEST_API_ON_INIT:
             self._test()
 
     def _cache_state(self) -> str:
@@ -126,7 +126,7 @@ class Shortener:
         log.debug("Initialized requests sessions.")
 
     def _init_executor(self) -> None:
-        self._max_workers = min(config.MAX_WORKERS, len(self._tokens) * config.MAX_WORKERS_PER_TOKEN)
+        self._max_workers = min(MAX_WORKERS, len(self._tokens) * MAX_WORKERS_PER_TOKEN)
         log.debug("Max number of worker threads is %s.", self._max_workers)
         self._thread_local = threading.local()
         self._init_requests_session()  # For conditional non-parallel execution.
@@ -138,7 +138,7 @@ class Shortener:
     @staticmethod
     def _is_known_short_url(url: str) -> bool:
         result = urlparse(url)
-        return (result.netloc in config.KNOWN_SHORT_DOMAINS) and (result.scheme in {"https", "http"})
+        return (result.netloc in KNOWN_SHORT_DOMAINS) and (result.scheme in {"https", "http"})
 
     def _lengthen_url(self, short_url: str) -> str:
         # Can raise: exc.RequestError
@@ -146,7 +146,7 @@ class Shortener:
         log.debug("Requesting long URL for short URL %s.", short_url)
         try:
             start_time = time.monotonic()
-            response = self._thread_local.session_head.head(short_url, allow_redirects=False, timeout=config.REQUEST_TIMEOUT)
+            response = self._thread_local.session_head.head(short_url, allow_redirects=False, timeout=REQUEST_TIMEOUT)
             time_used = time.monotonic() - start_time
             response.raise_for_status()
         except (requests.HTTPError, requests.ConnectionError, requests.Timeout) as exception:
@@ -181,7 +181,7 @@ class Shortener:
             # Reproducibility of randomization is useful so as to prevent creating the same short URL under multiple
             # tokens, as this counts toward a monthly creation quota.
             tokens = randomizer.sample(tokens, len(tokens))  # Doesn't mutate original list.
-        endpoints = config.API_URL_BITLINKS, config.API_URL_SHORTEN  # Specified in reverse order due to pop().
+        endpoints = API_URL_BITLINKS, API_URL_SHORTEN  # Specified in reverse order due to pop().
         attempts = [(endpoint, token) for endpoint in endpoints for token in tokens]
         num_max_attempts = len(attempts)
 
@@ -198,7 +198,7 @@ class Shortener:
                     url=endpoint,
                     json={"long_url": long_url},
                     allow_redirects=False,
-                    timeout=config.REQUEST_TIMEOUT,
+                    timeout=REQUEST_TIMEOUT,
                     headers={"Authorization": f"Bearer {token}"},
                 )
                 time_used = time.monotonic() - start_time
@@ -247,7 +247,7 @@ class Shortener:
         return short_url
 
     def _test(self) -> None:
-        long_url = config.TEST_LONG_URL
+        long_url = TEST_LONG_URL
         log.debug("Testing API for long URL %s.", long_url)
         short_url = self.shorten_urls([long_url])
         log.debug("Tested API for long URL %s. Received short URL %s.", long_url, short_url)
@@ -256,13 +256,13 @@ class Shortener:
         session = self._thread_local.session_get
         total_used, total_limit = 0, 0
         request_headers = {"Authorization": f"Bearer {token}"}
-        response = session.get(config.API_URL_ORGANIZATIONS, headers=request_headers)
+        response = session.get(API_URL_ORGANIZATIONS, headers=request_headers)
         response.raise_for_status()
         orgs_data = response.json()
         orgs = orgs_data["organizations"]
         for org in orgs:
             guid = org["guid"]
-            response = session.get(config.API_URL_FORMAT_ORGANIZATION_LIMITS.format(organization_guid=guid), headers=request_headers)
+            response = session.get(API_URL_FORMAT_ORGANIZATION_LIMITS.format(organization_guid=guid), headers=request_headers)
             limits_data = response.json()
             usages = limits_data["plan_limits"]
             for usage in usages:
@@ -278,7 +278,7 @@ class Shortener:
         source = self._shorten_url
         return {source.__qualname__: source.cache_info()}  # type: ignore
 
-    @cachetools.func.ttl_cache(ttl=config.USAGE_CACHE_TIME)
+    @cachetools.func.ttl_cache(ttl=USAGE_CACHE_TIME)
     def usage(self) -> float:
         """Return the fraction of URL shortening quota used across the pool of tokens for the current calendar month.
 
