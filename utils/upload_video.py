@@ -34,8 +34,8 @@ class UploadVedio(UploadVedioBase):
 
   def initialize_upload(self,youtube, options):
     tags = None
-    if options['keywords']:
-      tags = options['keywords'].split(",")
+    #if options['keywords']:
+    #  tags = options['keywords'].split(",")
 
     body=dict(
       snippet=dict(

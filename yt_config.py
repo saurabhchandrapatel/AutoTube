@@ -65,6 +65,8 @@ if not os.path.isfile(DB_FILE):
 
 
 
+FB_PAGE_ID = "1487996058086830"
+FB_PAGE_ACCESS_TOKEN = 'EAAJBzTBWAmIBAAeFLxz1zDha2Pkw99Owf2u4Rt4WPIt7GYoHAKlzvFaZAhWwQSMMKWcPbgI2AjXpqCpd0tfne0wbfoIjUYDDhDNWJU5iK8kBbK7jGEqEn5CtJTkhHZAmUbRme5sr6rWbYfBUT1ndquIlBltbLHecC0zMXcnhPHagCloMYK5PY0mJAQXJAequrzS52yI4oOgTGs52nOqgYcKQ38kBwZD'
 
 FFMPEG_BINARY = os.getenv('FFMPEG_BINARY', 'ffmpeg-imageio')
 #IMAGEMAGICK_BINARY = os.getenv('IMAGEMAGICK_BINARY', 'auto-detect') 
@@ -156,8 +158,6 @@ COLOR_DB = [
     ("#FFF748","#3C1A5B") 
 ]
 
-
-
 # Your Reddit ID & Pass
 reddit_username="theblipman"
 reddit_password="your_reddit_password"
@@ -170,4 +170,10 @@ client_secret="7MI_RkFvd2nDUX8CCLl2TEUBbg4mag"
 app_id="your_app_id"
 app_key="your_app_key"
 user_agent="youtubespatel"
- 
+
+
+#URL Shortner bitly.com 
+"""Package configuration."""
+
+tokens_pool_email= ['vsaurabh.aec@gmail.com', 'vsaurabhaec1', 'vsaurabhaec2', 'vsaurabhaec3'] 
+tokens_pool = ['457406ca3a6b1d4c1bc843f38684065dc1b6eb5f','251399feae01c65474d84a78131f0a0784212497','437c850c9a27c431bca01ebbeb2369552d8468bb','9755717c6f3ae34e430c1159c54bb0cdfe5382aa']  # Use your own.

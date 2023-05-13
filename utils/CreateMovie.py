@@ -85,9 +85,9 @@ class CreateMovie():
             txt = txt.margin(10)
             text_clips.append(txt)
 
-            notification = AudioFileClip(os.path.join(music_path, f"notification.mp3"))
-            notification = notification.set_start((0, 3 + (i * 12)))
-            notification_sounds.append(notification)
+            # notification = AudioFileClip(os.path.join(music_path, f"notification.mp3"))
+            # notification = notification.set_start((0, 3 + (i * 12)))
+            # notification_sounds.append(notification)
 
             notification = AudioFileClip(os.path.join(music_path, f"notification.mp3"))
             notification = notification.set_start((0, 5 + (i * 12)))
